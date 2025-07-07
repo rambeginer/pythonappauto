@@ -1,0 +1,35 @@
+trigger:
+- main
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildAndPush
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      inputs:
+        command: buildAndPush
+        repository: myacrramraja.azurecr.io/pythonapp
+        dockerfile: Dockerfile
+        containerRegistry: 'AzureContainerRegistryConnection'
+        tags: latest
+
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - job: DeployToAKS
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Kubernetes@1
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscription: 'My Azure Subscription'
+        azureResourceGroup: 'myDevOpsRG'
+        kubernetesCluster: 'myAKSCluster'
+        namespace: default
+        command: apply
+        useConfigurationFile: true
+        configuration: 'manifests/deployment.yml'
