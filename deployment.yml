@@ -14,6 +14,7 @@ spec:
     spec:
       containers:
       - name: pythonapp
-        image: myacrramraja.azurecr.io/pythonapp:52
+        image: myacrramraja.azurecr.io/pythonapp:$(Build.BuildId)
         ports:
         - containerPort: 80
+
