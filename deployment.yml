@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: python-deployment
+  name: pythonapp-deployment
 spec:
   replicas: 1
   selector:
@@ -14,7 +14,6 @@ spec:
     spec:
       containers:
       - name: pythonapp
-        image: myacrramraja.azurecr.io/pythonapp:latest
-        imagePullPolicy: Always
+        image: myacrramraja.azurecr.io/pythonapp:52
         ports:
         - containerPort: 80
