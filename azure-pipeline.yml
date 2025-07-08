@@ -1,35 +1,23 @@
 trigger:
 - main
 
-stages:
-- stage: Build
-  jobs:
-  - job: BuildAndPush
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-    - task: Docker@2
-      inputs:
-        command: buildAndPush
-        repository: myacrramraja.azurecr.io/pythonapp
-        dockerfile: Dockerfile
-        containerRegistry: 'AzureContainerRegistryConnection'
-        tags: latest
+pool:
+  vmImage: 'ubuntu-latest'
 
-- stage: Deploy
-  dependsOn: Build
-  jobs:
-  - job: DeployToAKS
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-    - task: Kubernetes@1
-      inputs:
-        connectionType: 'Azure Resource Manager'
-        azureSubscription: 'My Azure Subscription'
-        azureResourceGroup: 'myDevOpsRG'
-        kubernetesCluster: 'myAKSCluster'
-        namespace: default
-        command: apply
-        useConfigurationFile: true
-        configuration: 'deployment.yml'
+variables:
+  imageName: 'pythonapp'
+
+steps:
+- task: Docker@2
+  displayName: 'Build and Push Docker image to ACR'
+  inputs:
+    containerRegistry: 'AzureContainerRegistryConnection'   # ✅ Azure RM service connection name
+    repository: '$(imageName)'
+    command: 'buildAndPush'
+    Dockerfile: '**/Dockerfile'
+    tags: |
+      $(Build.BuildId)
+
+- script: |
+    echo "Docker Image pushed to ACR as $(imageName):$(Build.BuildId)"
+  displayName: 'Log Image Push Info'
