@@ -9,15 +9,25 @@ variables:
 
 steps:
 - task: Docker@2
-  displayName: 'Build and Push Docker image to ACR'
+  displayName: Build and Push Docker image to ACR
   inputs:
-    containerRegistry: 'DockerRegistryConnection'   # ✅ Docker registry type
+    containerRegistry: 'myacrServiceConnection'  # replace with your Docker Registry service connection name
     repository: '$(imageName)'
     command: 'buildAndPush'
     Dockerfile: '**/Dockerfile'
     tags: |
       $(Build.BuildId)
 
-- script: |
-    echo "Docker Image pushed to ACR as $(imageName):$(Build.BuildId)"
-  displayName: 'Log Image Push Info'
+- task: Kubernetes@1
+  displayName: Deploy to AKS
+  inputs:
+    connectionType: 'Azure Resource Manager'
+    azureSubscriptionEndpoint: 'AzureContainerRegistryConnection'  # your ARM connection
+    azureResourceGroup: 'myDevOpsRG'
+    kubernetesCluster: 'myAKSCluster'
+    namespace: 'default'
+    command: 'apply'
+    useConfigurationFile: true
+    configuration: |
+      deployment.yml
+      service.yml
